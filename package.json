@@ -1,0 +1,13 @@
+{
+  "name": "lib-logger",
+  "version": "1.0.0",
+  "description": "enforces to log everything in JSON format.",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Namshi",
+  "license": "MIT",
+  "dependencies": {
+    "winston": "^3.0.0-rc1"
+  },
+  "devDependencies": {}
+}
