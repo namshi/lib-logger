@@ -61,5 +61,5 @@ logger.setLevel = (level) => {
   });
 };
 
-module.exports = { logger };
+module.exports = logger;
 module.exports.default = logger;
