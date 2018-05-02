@@ -14,7 +14,11 @@ const log = createLogger({
 const isError = e => (
   e instanceof Error || (e && e.stack && e.message)
 );
-
+const isObject = e => (typeof e === 'object' && !Array.isArray(e))
+const readableMessage = o => Object.assign({},o,{message:o.message.reduce( (acc,item) => item+', '+acc, [])})
+const createAddMessage = o => e => Object.assign({},{message:o.message.concat(util.inspect(e))});
+const createAddObject = o => e => Object.assign(o,e);
+const createAddError = o => e => Object.assign({},{status:e.status || 500, stack:e.stack, message:e.message});
 /**
  * Parse the list arguments passed to be be logged and return a single JSON object
  * If the arg is an Error object, we need only to extract message, stack and statusCode. message is appended to the log message with a prefix 'Error: '
@@ -26,23 +30,17 @@ const isError = e => (
  */
 const parseArgs = (args) => {
   let objToLog = { message: [] };
+  const addMessage = createAddMessage(objToLog);
+  const addError = createAddError(objToLog);
+  const addObject = createAddObject(objToLog);
   args.forEach((arg) => {
     if (!arg) {
       return;
     }
+    objToLog = readableMessage(isError(arg) && addMessage(addError(arg)) || isObject(arg) && addObject(arg) || addMessage(arg));
 
-    if (isError(arg)) {
-      objToLog.status = arg.statusCode || 500;
-      objToLog.stack = arg.stack;
-      objToLog.message.push(util.inspect(arg));
-    } else if (typeof arg === 'object' && !Array.isArray(arg)) {
-      objToLog = Object.assign({}, objToLog, arg); 
-    } else {
-      objToLog.message.push(util.inspect(arg));
-    }
   });
-
-  objToLog.message = objToLog.message.join(', ');
+    
   return objToLog;
 };
 
@@ -56,9 +54,7 @@ Object.keys(log.levels).forEach((level) => {
 });
 
 logger.setLevel = (level) => {
-  log.transports.forEach((transport) => {
-    transport.level = level;
-  });
+    log.transports = log.transports.map(item => createAddObject(item)({level:level}));
 };
 
 module.exports = logger;
