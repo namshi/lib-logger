@@ -3,11 +3,17 @@
   "version": "1.0.0",
   "description": "enforces to log everything in JSON format.",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "NODE_ENV=test ./node_modules/mocha/bin/mocha -t 2000 --recursive"
+  },
   "author": "Namshi",
   "license": "MIT",
   "dependencies": {
     "winston": "^3.0.0-rc1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "mocha": "^5.1.1",
+    "proxyquire": "^2.0.1",
+    "should": "^13.2.1"
+  }
 }
