@@ -7,21 +7,22 @@ const TEST_OBJ = { h: 1 };
 describe('Logger', () => {
   describe('#get', () => {
     it('should return a message with string', () => {
-      const ret = logger.info(TEST_STRING);
-      assert.equal(ret.message, `'${TEST_STRING}'`);
+      const { message, context } = logger.info(TEST_STRING);
+      assert.equal(message, `'${TEST_STRING}'`);
+      assert.deepEqual(context, {});
     });
 
     it('should return a object with value 1', () => {
-      const ret = logger.warn(TEST_OBJ);
-      assert.equal(ret.message, '');
-      assert.equal(ret.h, TEST_OBJ.h);
+      const { message, context } = logger.warn(TEST_OBJ);
+      assert.equal(message, '');
+      assert.equal(context.h, TEST_OBJ.h);
     });
 
     it('should return an error object', () => {
-      const ret = logger.warn(new Error(TEST_STRING));
-      assert.equal(ret.message.indexOf(TEST_STRING) != -1, true);
-      assert.ok(ret.stack);
-      assert.ok(ret.status);
+      const { message, context } = logger.warn(new Error(TEST_STRING));
+      assert.notEqual(message.indexOf(TEST_STRING), -1);
+      assert.ok(context.stack)
+      assert.ok(context.status);
     });
   });
 });
