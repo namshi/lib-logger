@@ -11,10 +11,10 @@ const log = createLogger({
   transports: [new transports.Console({ json: true })],
 });
 
-const isError = e => (
-  e instanceof Error || (e && e.stack && e.message)
-);
-const isObject = e => (typeof e === 'object' && !Array.isArray(e))
+const isError = e => (e instanceof Error || (e && e.stack && e.message));
+
+const isObject = obj => (typeof obj === 'object' && !Array.isArray(obj));
+
 /**
  * Parse the list arguments passed to be be logged and return a single JSON object
  * If the arg is an Error object, we need only to extract message, stack and statusCode. message is appended to the log message with a prefix 'Error: '
@@ -51,7 +51,8 @@ const logger = {};
 Object.keys(log.levels).forEach((level) => {
   logger[level] = (...args) => {
     const obj = parseArgs(args);
-    return log[level](obj.message, obj);
+    log[level](obj.message, obj);
+    return obj;
   };
 });
 
