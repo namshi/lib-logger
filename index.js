@@ -26,34 +26,35 @@ const isObject = obj => (typeof obj === 'object' && !Array.isArray(obj));
  * TODO: make it async?
  */
 const parseArgs = (args) => {
-  let objToLog = { message: [] };
-  args.forEach((arg) => {
-    if (!arg) {
-      return;
+  const { messages, context } = args.reduce((acc, arg) => {
+    if (arg) {
+      if (isError(arg)) {
+        acc.context.status = arg.statusCode || 500;
+        acc.context.stack = arg.stack;
+        acc.messages.push(util.inspect(arg));
+      } else if (isObject(arg)) {
+        acc.context = Object.assign({}, acc.context, arg);
+      } else {
+        acc.messages.push(util.inspect(arg));
+      }
     }
 
-    if (isError(arg)) {
-      objToLog.status = arg.statusCode || 500;
-      objToLog.stack = arg.stack;
-      objToLog.message.push(util.inspect(arg));
-    } else if (isObject(arg)) {
-      objToLog = Object.assign({}, objToLog, arg); 
-    } else {
-      objToLog.message.push(util.inspect(arg));
-    }
-  });
+    return acc;
+  }, { messages: [], context: {} });
 
-  objToLog.message = objToLog.message.join(', ');
-  return objToLog;
+  return {
+    context,
+    message: messages.join(', '),
+  };
 };
 
 // define Logger
 const logger = {};
 Object.keys(log.levels).forEach((level) => {
   logger[level] = (...args) => {
-    const obj = parseArgs(args);
-    log[level](obj.message, obj);
-    return obj;
+    const { message, context } = parseArgs(args);
+    log[level](message, context);
+    return { message, context };
   };
 });
 
