@@ -32,15 +32,14 @@ const parseArgs = (args) => {
       return;
     }
 
-    if (isError(arg)) {
-      objToLog.status = arg.statusCode || 500;
-      objToLog.stack = arg.stack;
-      objToLog.message.push(util.inspect(arg));
-    } else if (isObject(arg)) {
-      objToLog = Object.assign({}, objToLog, arg); 
-    } else {
-      objToLog.message.push(util.inspect(arg));
-    }
+    objToLog = isError(arg) && Object.assign({}, objToLog, {
+        status:arg.statusCode || 500,
+        stack:arg.stack,
+        message:objToLog.message.concat(util.inspect(arg)),
+      }) || isObject(arg) && Object.assign({}, objToLog, arg) || Object.assign({},objToLog,{
+        message:objToLog.message.concat(util.inspect(arg)),
+      });
+
   });
 
   objToLog.message = objToLog.message.join(', ');
