@@ -12,16 +12,18 @@ const log = createLogger({
 });
 
 const isError = e => (e instanceof Error || (e && e.stack && e.message));
-
 const isObject = obj => (typeof obj === 'object' && !Array.isArray(obj));
-
-const addMessage = (arg, obj) =>  obj.message.concat(util.inspect(arg));
+const addMessage = (arg, obj) =>  obj.messages.concat(util.inspect(arg));
 const addError = (arg, obj) => isError(arg) && Object.assign({}, obj, {
+    context:{
         status:arg.statusCode || 500,
         stack:arg.stack,
-        message:addMessage(arg,obj),
+    },
+    messages : addMessage(arg,obj)
  });
  const addObject = (arg, obj) =>  isObject(arg) && Object.assign({}, obj, arg);
+ const msg2String = obj => Object.assign({},obj,{messages:obj.messages.slice(0).join(', ')});
+
 /**
  * Parse passed arguments list and return a single JSON object to be be logged.
  * If the arg is an Error object, we need only to extract message, stack and statusCode.
@@ -32,37 +34,21 @@ const addError = (arg, obj) => isError(arg) && Object.assign({}, obj, {
  * @return objToLog: JSON object contains all parameters to be sent to winston context including a message string
  * TODO: make it async?
  */
-const parseArgs = (args) => {
-  let objToLog = { message: [] };
-  args.forEach((arg) => {
-    if (!arg) {
-      return;
-    }
 
-    objToLog = addError(arg,objToLog) || isObject(arg) && Object.assign({}, objToLog, arg) || Object.assign({},objToLog,{
-        message:objToLog.message.concat(util.inspect(arg)),
-      });
-
-  });
-
-  objToLog.message = objToLog.message.join(', ');
-  return objToLog;
-};
+const parseObj =  (acc, arg) => (!arg && acc || addError(arg,acc) || addObject(arg,acc) || Object.assign({},acc,{messages:addMessage(arg,acc)}))
+const parseArgs = (args) => msg2String(args.reduce(parseObj, { messages: [], context: {} }));
 
 const logByLevel = level  => (...args) => {
   let obj = parseArgs(args)
-	log[level](obj.message, obj);
+	log[level](obj.message, obj.context);
 }
 
-const logger = Object.keys(log.levels).reduce((acc, val) => { acc[val] = logByLevel(val); return acc; },{}); 
+const logger = Object.keys(log.levels).reduce((acc, val) => { acc[val] = logByLevel(val); return acc; },{});
 
 logger.setLevel = (level) => {
   log.transports.forEach((transport) => {
     transport.level = level;
   });
 };
-logger.info("hello world");
-logger.warn({a:true});
-logger.error(new Error("Error"));
 module.exports = logger;
 module.exports.default = logger;
