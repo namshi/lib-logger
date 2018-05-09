@@ -15,6 +15,13 @@ const isError = e => (e instanceof Error || (e && e.stack && e.message));
 
 const isObject = obj => (typeof obj === 'object' && !Array.isArray(obj));
 
+const addMessage = (arg, obj) =>  obj.message.concat(util.inspect(arg));
+const addError = (arg, obj) => isError(arg) && Object.assign({}, obj, {
+        status:arg.statusCode || 500,
+        stack:arg.stack,
+        message:addMessage(arg,obj),
+ });
+ const addObject = (arg, obj) =>  isObject(arg) && Object.assign({}, obj, arg);
 /**
  * Parse passed arguments list and return a single JSON object to be be logged.
  * If the arg is an Error object, we need only to extract message, stack and statusCode.
@@ -32,11 +39,7 @@ const parseArgs = (args) => {
       return;
     }
 
-    objToLog = isError(arg) && Object.assign({}, objToLog, {
-        status:arg.statusCode || 500,
-        stack:arg.stack,
-        message:objToLog.message.concat(util.inspect(arg)),
-      }) || isObject(arg) && Object.assign({}, objToLog, arg) || Object.assign({},objToLog,{
+    objToLog = addError(arg,objToLog) || isObject(arg) && Object.assign({}, objToLog, arg) || Object.assign({},objToLog,{
         message:objToLog.message.concat(util.inspect(arg)),
       });
 
@@ -50,7 +53,8 @@ const logByLevel = level  => (...args) => {
   let obj = parseArgs(args)
 	log[level](obj.message, obj);
 }
-const logger = Object.assign({},...Object.keys(log.levels).map(level => ({[level]: logByLevel(level)})));
+
+const logger = Object.keys(log.levels).reduce((acc, val) => { acc[val] = logByLevel(val); return acc; },{}); 
 
 logger.setLevel = (level) => {
   log.transports.forEach((transport) => {
