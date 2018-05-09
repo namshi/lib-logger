@@ -47,21 +47,19 @@ const parseArgs = (args) => {
   return objToLog;
 };
 
-// define Logger
-const logger = {};
-Object.keys(log.levels).forEach((level) => {
-  logger[level] = (...args) => {
-    const obj = parseArgs(args);
-    log[level](obj.message, obj);
-    return obj;
-  };
-});
+const logByLevel = level  => (...args) => {
+  let obj = parseArgs(args)
+	log[level](obj.message, obj);
+}
+const logger = Object.assign({},...Object.keys(log.levels).map(level => ({[level]: logByLevel(level)})));
 
 logger.setLevel = (level) => {
   log.transports.forEach((transport) => {
     transport.level = level;
   });
 };
-
+logger.info("hello world");
+logger.warn({a:true});
+logger.error(new Error("Error"));
 module.exports = logger;
 module.exports.default = logger;
