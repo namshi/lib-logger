@@ -22,7 +22,9 @@ const addError = (arg, obj) => isError(arg) && Object.assign({}, obj, {
     messages : addMessage(arg,obj)
  });
  const addObject = (arg, obj) =>  isObject(arg) && Object.assign({}, obj, arg);
- const msg2String = obj => Object.assign({},obj,{messages:obj.messages.slice(0).join(', ')});
+ 
+ // Mutable
+ const msg2String = obj => obj.messages.join(', ')//Object.assign({},obj,{messages:obj.messages.slice(0).join(', ')});
 
 /**
  * Parse passed arguments list and return a single JSON object to be be logged.
@@ -35,8 +37,7 @@ const addError = (arg, obj) => isError(arg) && Object.assign({}, obj, {
  * TODO: make it async?
  */
 
-const parseObj =  (acc, arg) => (!arg && acc || addError(arg,acc) || addObject(arg,acc) || Object.assign({},acc,{messages:addMessage(arg,acc)}))
-const parseArgs = (args) => msg2String(args.reduce(parseObj, { messages: [], context: {} }));
+const parseArgs = (args) => msg2String(args.reduce((acc, arg) => (!arg && acc || addError(arg,acc) || addObject(arg,acc) || Object.assign({},acc,{messages:addMessage(arg,acc)})), { messages: [], context: {} }));
 
 const logByLevel = level  => (...args) => {
   let obj = parseArgs(args)
@@ -50,5 +51,7 @@ logger.setLevel = (level) => {
     transport.level = level;
   });
 };
+log.info('hello!')
+log.info('hello!',{a:32})
 module.exports = logger;
 module.exports.default = logger;
