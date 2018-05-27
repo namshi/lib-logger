@@ -4,27 +4,23 @@ const { combine, timestamp } = format;
 
 const log = createLogger({
   level: 'info',
-  format: combine(
-    timestamp(),
-    format.json(),
-  ),
+  format: combine(timestamp(), format.json()),
   transports: [new transports.Console({ json: true })],
 });
 
-const isError = e => (e instanceof Error || (e && e.stack && e.message));
-const isObject = obj => (typeof obj === 'object' && !Array.isArray(obj));
-const addMessage = (arg, obj) =>  obj.messages.concat(util.inspect(arg));
-const addError = (arg, obj) => isError(arg) && Object.assign({}, obj, {
-    context:{
-        status:arg.statusCode || 500,
-        stack:arg.stack,
+const isError = e => e instanceof Error || (e && e.stack && e.message);
+const isObject = obj => typeof obj === 'object' && !Array.isArray(obj);
+const addMessage = (arg, obj) => obj.messages.concat(util.inspect(arg));
+const addError = (arg, obj) =>
+  isError(arg) &&
+  Object.assign({}, obj, {
+    context: {
+      status: arg.statusCode || 500,
+      stack: arg.stack,
     },
-    messages : addMessage(arg,obj)
- });
- const addObject = (arg, obj) =>  isObject(arg) && Object.assign({}, obj, arg);
- 
- // Mutable
- const msg2String = obj => obj.messages.join(', ')//Object.assign({},obj,{messages:obj.messages.slice(0).join(', ')});
+    messages: addMessage(arg, obj),
+  });
+const addObject = (arg, obj) => isObject(arg) && Object.assign({}, obj, arg);
 
 /**
  * Parse passed arguments list and return a single JSON object to be be logged.
@@ -37,21 +33,34 @@ const addError = (arg, obj) => isError(arg) && Object.assign({}, obj, {
  * TODO: make it async?
  */
 
-const parseArgs = (args) => msg2String(args.reduce((acc, arg) => (!arg && acc || addError(arg,acc) || addObject(arg,acc) || Object.assign({},acc,{messages:addMessage(arg,acc)})), { messages: [], context: {} }));
+const parseArgs = args => {
+  let obj = args.reduce(
+    (acc, arg) =>
+      (!arg && acc) ||
+      addError(arg, acc) ||
+      addObject(arg, acc) ||
+      Object.assign({}, acc, { messages: addMessage(arg, acc) }),
+    { messages: [], context: {} }
+  );
+  obj.messages.join(',');
+  return obj;
+};
+const logByLevel = level => (...args) => {
+  let obj = parseArgs(args);
+  log[level](obj.message, obj.context);
+};
 
-const logByLevel = level  => (...args) => {
-  let obj = parseArgs(args)
-	log[level](obj.message, obj.context);
-}
+const logger = Object.keys(log.levels).reduce((acc, val) => {
+  acc[val] = logByLevel(val);
+  return acc;
+}, {});
 
-const logger = Object.keys(log.levels).reduce((acc, val) => { acc[val] = logByLevel(val); return acc; },{});
-
-logger.setLevel = (level) => {
-  log.transports.forEach((transport) => {
+logger.setLevel = level => {
+  log.transports.forEach(transport => {
     transport.level = level;
   });
 };
-log.info('hello!')
-log.info('hello!',{a:32})
+log.info('hello!');
+log.info('hello!', { a: 32 });
 module.exports = logger;
 module.exports.default = logger;
