@@ -42,12 +42,12 @@ const parseArgs = args => {
       Object.assign({}, acc, { messages: addMessage(arg, acc) }),
     { messages: [], context: {} }
   );
-  obj.messages.join(',');
+  obj.messages = obj.messages.join(',');
   return obj;
 };
 const logByLevel = level => (...args) => {
   let obj = parseArgs(args);
-  log[level](obj.message, obj.context);
+  log[level](obj.messages, obj.context);
 };
 
 const logger = Object.keys(log.levels).reduce((acc, val) => {
@@ -60,7 +60,5 @@ logger.setLevel = level => {
     transport.level = level;
   });
 };
-log.info('hello!');
-log.info('hello!', { a: 32 });
 module.exports = logger;
 module.exports.default = logger;
