@@ -20,7 +20,11 @@ const addError = (arg, obj) =>
     },
     messages: addMessage(arg, obj),
   });
-const addObject = (arg, obj) => isObject(arg) && Object.assign({}, obj, arg);
+const addObject = (arg, obj) =>
+  isObject(arg) &&
+  Object.assign({}, obj, {
+    context: Object.assign({}, obj.context, arg),
+  });
 
 /**
  * Parse passed arguments list and return a single JSON object to be be logged.
@@ -60,5 +64,6 @@ logger.setLevel = level => {
     transport.level = level;
   });
 };
+
 module.exports = logger;
 module.exports.default = logger;
