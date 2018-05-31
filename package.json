@@ -1,12 +1,18 @@
 {
   "name": "lib-logger",
   "version": "1.0.0",
-  "description": "enforces to log everything in JSON format.",
+  "description": "Library that simplifies the way we log JSON output",
   "main": "index.js",
   "scripts": {
     "test": "NODE_ENV=test mocha -t 2000 --recursive"
   },
   "author": "Namshi",
+  "keywords": [
+    "json",
+    "logger",
+    "log",
+    "logging"
+  ],
   "license": "MIT",
   "dependencies": {
     "winston": "^3.0.0-rc1"
