@@ -28,7 +28,8 @@
     "mocha": "^5.2.0",
     "nyc": "^14.1.0",
     "prettier": "^1.17.0",
-    "rewire": "^4.0.1"
+    "rewire": "^4.0.1",
+    "yaml-lint": "^1.2.4"
   },
   "prettier": {
     "printWidth": 300
@@ -39,6 +40,9 @@
     }
   },
   "lint-staged": {
+    "*.yml": [
+        "yamllint"
+    ],
     "*.js": [
       "prettier --write",
       "eslint --ignore-pattern test --fix .",

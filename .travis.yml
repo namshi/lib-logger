@@ -1,5 +1,5 @@
 dist: trusty
-sudo: required
+sudo: true
 language: node_js
 install:
   - yarn install
