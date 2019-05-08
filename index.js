@@ -1,29 +1,29 @@
-const util = require('util');
-const { createLogger, format, transports } = require('winston');
+const util = require("util");
+const { createLogger, format, transports } = require("winston");
 const { combine, timestamp } = format;
 
 const log = createLogger({
-  level: 'info',
+  level: "info",
   format: combine(timestamp(), format.json()),
-  transports: [new transports.Console({ json: true })],
+  transports: [new transports.Console({ json: true })]
 });
 
 const isError = e => e instanceof Error || (e && e.stack && e.message);
-const isObject = obj => typeof obj === 'object' && !Array.isArray(obj);
+const isObject = obj => typeof obj === "object" && !Array.isArray(obj);
 const addMessage = (arg, obj) => obj.messages.concat(util.inspect(arg));
 const addError = (arg, obj) =>
   isError(arg) &&
   Object.assign({}, obj, {
     context: {
       status: arg.statusCode || 500,
-      stack: arg.stack,
+      stack: arg.stack
     },
-    messages: addMessage(arg, obj),
+    messages: addMessage(arg, obj)
   });
 const addObject = (arg, obj) =>
   isObject(arg) &&
   Object.assign({}, obj, {
-    context: Object.assign({}, obj.context, arg),
+    context: Object.assign({}, obj.context, arg)
   });
 
 /**
@@ -38,19 +38,12 @@ const addObject = (arg, obj) =>
  */
 
 const parseArgs = args => {
-  let obj = args.reduce(
-    (acc, arg) =>
-      (!arg && acc) ||
-      addError(arg, acc) ||
-      addObject(arg, acc) ||
-      Object.assign({}, acc, { messages: addMessage(arg, acc) }),
-    { messages: [], context: {} }
-  );
-  obj.messages = obj.messages.join(',');
+  const obj = args.reduce((acc, arg) => (!arg && acc) || addError(arg, acc) || addObject(arg, acc) || Object.assign({}, acc, { messages: addMessage(arg, acc) }), { messages: [], context: {} });
+  obj.messages = obj.messages.join(",");
   return obj;
 };
 const logByLevel = level => (...args) => {
-  let obj = parseArgs(args);
+  const obj = parseArgs(args);
   log[level](obj.messages, obj.context);
 };
 
