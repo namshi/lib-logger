@@ -8,24 +8,25 @@ const log = createLogger({
   transports: [new transports.Console({ json: true })]
 });
 
-const isError = e => e instanceof Error || (e && e.stack && e.message);
-const isObject = obj => typeof obj === "object" && !Array.isArray(obj);
-const addMessage = (arg, obj) => obj.messages.concat(util.inspect(arg));
-const addError = (arg, obj) =>
-  isError(arg) &&
-  Object.assign({}, obj, {
-    context: {
-      status: arg.statusCode || 500,
-      stack: arg.stack
-    },
-    messages: addMessage(arg, obj)
-  });
-const addObject = (arg, obj) =>
-  isObject(arg) &&
-  Object.assign({}, obj, {
-    context: Object.assign({}, obj.context, arg)
-  });
+const isError = e => e instanceof Error || (e && e.stack && e.message && true) || false;
+const isObject = obj => typeof obj === "object" && !Array.isArray(obj) && obj !== null;
+const dataStringify = data => (isError(data) ? util.inspect(data) : JSON.stringify(data)).replace(/\n|\t|\r/g, "");
+const addMessage = (arg, { messages = [] } = {}) => (arg || arg === 0 ? messages.concat(dataStringify(arg)) : messages);
 
+const addArg = (data, res = { context: {}, messages: [] }) => (isError(data) && withError(data, res)) || (isObject(data) && withObject(data, res)) || withMessages(data, res);
+const withError = (err, res = { context: {}, messages: [] }) => {
+  if (err) {
+    const { statusCode: status = 500, stack, message } = err;
+    let messages = res.messages || [];
+    if (message) {
+      messages = messages.concat(`Error: ${message}`);
+    }
+    return { ...res, context: Object.assign({}, res.context, status && { status }, stack && { stack }), messages };
+  }
+  return res;
+};
+const withObject = (obj, res = { context: {}, messages: [] }) => (obj ? { ...res, context: Object.assign({}, res.context, obj), messages: res.messages || [] } : res);
+const withMessages = (obj, res = { context: {}, messages: [] }) => Object.assign({}, res, { messages: addMessage(obj, res) });
 /**
  * Parse passed arguments list and return a single JSON object to be be logged.
  * If the arg is an Error object, we need only to extract message, stack and statusCode.
@@ -38,13 +39,12 @@ const addObject = (arg, obj) =>
  */
 
 const parseArgs = args => {
-  const obj = args.reduce((acc, arg) => (!arg && acc) || addError(arg, acc) || addObject(arg, acc) || Object.assign({}, acc, { messages: addMessage(arg, acc) }), { messages: [], context: {} });
-  obj.messages = obj.messages.join(",");
-  return obj;
+  const obj = args.reduce((acc, data) => addArg(data, acc), { context: {}, messages: [] });
+  return { ...obj, messages: obj.messages.join(",") };
 };
 const logByLevel = level => (...args) => {
-  const obj = parseArgs(args);
-  log[level](obj.messages, obj.context);
+  const { messages, context } = parseArgs(args);
+  return log[level](messages, context);
 };
 
 const logger = Object.keys(log.levels).reduce((acc, val) => {

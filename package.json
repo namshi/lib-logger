@@ -6,7 +6,7 @@
   "scripts": {
     "test": "NODE_ENV=test nyc mocha",
     "coverage": "nyc --reporter=lcov --reporter=text-lcov mocha",
-    "lint": "eslint --ignore-pattern test --fix .",
+    "lint": "eslint --fix .",
     "fmt": "./node_modules/prettier/bin-prettier.js *.js './**/*.js' --write"
   },
   "author": "Namshi",
@@ -21,12 +21,14 @@
     "winston": "^3.0.0-rc1"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
     "eslint": "^5.16.0",
     "husky": "^2.2.0",
     "lint-staged": "^8.1.6",
     "mocha": "^5.2.0",
     "nyc": "^14.1.0",
-    "prettier": "^1.17.0"
+    "prettier": "^1.17.0",
+    "rewire": "^4.0.1"
   },
   "prettier": {
     "printWidth": 300
