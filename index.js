@@ -1,7 +1,7 @@
 const util = require("util");
 const { createLogger, format, transports } = require("winston");
 const { combine, timestamp } = format;
-const { either } = require("keyu");
+const { compose } = require("keyu");
 
 const log = createLogger({
   level: "info",
@@ -11,8 +11,12 @@ const log = createLogger({
 
 const isError = e => e instanceof Error || (e && e.stack && e.message && true) || false;
 const isObject = obj => typeof obj === "object" && !Array.isArray(obj) && obj !== null;
-const stringifyOr = either(data => (isError(data) ? util.inspect(data) : JSON.stringify(data)), data => `${data}`);
-const dataStringify = data => stringifyOr(data).replace(/\n|\t|\r/g, "");
+const stringifyOr = data => (isError(data) ? util.inspect(data) : JSON.stringify(data));
+const sanatize = data => data.replace(/\\n|\n|\\t|\t|\\r|\r/g, " ");
+const dataStringify = compose(
+  sanatize,
+  stringifyOr
+);
 const addMessage = (arg, { messages = [] } = {}) => (arg || arg === 0 ? messages.concat(dataStringify(arg)) : messages);
 
 const addArg = (data, res = { context: {}, messages: [] }) => (isError(data) && withError(data, res)) || (isObject(data) && withObject(data, res)) || withMessages(data, res);
