@@ -2,9 +2,9 @@ dist: trusty
 sudo: true
 language: node_js
 install:
-  - yarn install
+  - npm install
 node_js:
   - '8'
 script:
-  - yarn run ci
-cache: yarn
+  - npm run ci
+cache: npm
