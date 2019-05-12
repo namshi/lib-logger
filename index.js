@@ -19,7 +19,7 @@ const dataStringify = compose(
 );
 const addMessage = (arg, { messages = [] } = {}) => (arg || arg === 0 ? messages.concat(dataStringify(arg)) : messages);
 
-const addArg = (data, res = { context: {}, messages: [] }) => (isError(data) && withError(data, res)) || (isObject(data) && withObject(data, res)) || withMessages(data, res);
+const addArg = (data, res = { context: {}, messages: [] }) => (isError(data) && withError(data, res)) || (isObject(data) && withObject(data, res)) || withMessage(data, res);
 const withError = (err, res = { context: {}, messages: [] }) => {
   if (err) {
     const { statusCode: status = 500, stack, message } = err;
@@ -32,10 +32,10 @@ const withError = (err, res = { context: {}, messages: [] }) => {
   return res;
 };
 const withObject = (obj, res = { context: {}, messages: [] }) => (obj ? { ...res, context: Object.assign({}, res.context, obj), messages: res.messages || [] } : res);
-const withMessages = (obj, res = { context: {}, messages: [] }) => Object.assign({}, res, { messages: addMessage(obj, res) });
+const withMessage = (obj, res = { context: {}, messages: [] }) => Object.assign({}, res, { messages: addMessage(obj, res) });
 
 const parseArgs = args => {
-  const obj = args.reduce((acc, data) => addArg(data, acc), { context: {}, messages: [] });
+  const obj = args.reduce((res, data) => addArg(data, res), { context: {}, messages: [] });
   return { ...obj, messages: obj.messages.join(",") };
 };
 const logByLevel = level => (...args) => {

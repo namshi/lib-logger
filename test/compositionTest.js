@@ -7,7 +7,7 @@ const addMessage = index.__get__("addMessage");
 const dataStringify = index.__get__("dataStringify");
 const withError = index.__get__("withError");
 const withObject = index.__get__("withObject");
-const withMessages = index.__get__("withMessages");
+const withMessage = index.__get__("withMessage");
 const addArg = index.__get__("addArg");
 const parseArgs = index.__get__("parseArgs");
 
@@ -72,16 +72,16 @@ describe("Builders", () => {
       withObject({ a: 1 }, { context: { b: 3 } }).should.deep.equals({ context: { b: 3, a: 1 }, messages: [] });
     });
   });
-  describe("#withMessages", () => {
+  describe("#withMessage", () => {
     it("should return empty structure if nothing passed", () => {
-      withMessages().should.deep.equals({ context: {}, messages: [] });
-      withMessages(null).should.deep.equals({ context: {}, messages: [] });
+      withMessage().should.deep.equals({ context: {}, messages: [] });
+      withMessage(null).should.deep.equals({ context: {}, messages: [] });
     });
     it("should append an object stringified in passed", () => {
-      withMessages({}).should.deep.equals({ context: {}, messages: ["{}"] });
+      withMessage({}).should.deep.equals({ context: {}, messages: ["{}"] });
     });
     it("should append an object stringified in passed", () => {
-      const msg = withMessages(new Error("shit"));
+      const msg = withMessage(new Error("shit"));
       msg.should.have.property("context");
       msg.should.have.property("messages");
       msg.messages.should.have.length(1);
