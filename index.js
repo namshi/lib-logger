@@ -11,11 +11,11 @@ const log = createLogger({
 
 const isError = e => e instanceof Error || (e && e.stack && e.message && true) || false;
 const isObject = obj => typeof obj === "object" && !Array.isArray(obj) && obj !== null;
-const stringifyOr = data => (isError(data) ? util.inspect(data) : JSON.stringify(data));
+const stringify = data => (isError(data) ? util.inspect(data) : JSON.stringify(data));
 const sanatize = data => data.replace(/\\n|\n|\\t|\t|\\r|\r/g, " ");
 const dataStringify = compose(
   sanatize,
-  stringifyOr
+  stringify
 );
 const addMessage = (arg, { messages = [] } = {}) => (arg || arg === 0 ? messages.concat(dataStringify(arg)) : messages);
 
