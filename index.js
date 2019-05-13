@@ -1,57 +1,46 @@
-const util = require('util');
-const { createLogger, format, transports } = require('winston');
+const util = require("util");
+const { createLogger, format, transports } = require("winston");
 const { combine, timestamp } = format;
+const { compose } = require("keyu");
 
 const log = createLogger({
-  level: 'info',
+  level: "info",
   format: combine(timestamp(), format.json()),
-  transports: [new transports.Console({ json: true })],
+  transports: [new transports.Console({ json: true })]
 });
 
-const isError = e => e instanceof Error || (e && e.stack && e.message);
-const isObject = obj => typeof obj === 'object' && !Array.isArray(obj);
-const addMessage = (arg, obj) => obj.messages.concat(util.inspect(arg));
-const addError = (arg, obj) =>
-  isError(arg) &&
-  Object.assign({}, obj, {
-    context: {
-      status: arg.statusCode || 500,
-      stack: arg.stack,
-    },
-    messages: addMessage(arg, obj),
-  });
-const addObject = (arg, obj) =>
-  isObject(arg) &&
-  Object.assign({}, obj, {
-    context: Object.assign({}, obj.context, arg),
-  });
+const isError = e => e instanceof Error || (e && e.stack && e.message && true) || false;
+const isObject = obj => typeof obj === "object" && !Array.isArray(obj) && obj !== null;
+const stringify = data => (isError(data) ? util.inspect(data) : JSON.stringify(data));
+const sanatize = data => data.replace(/\\n|\n|\\t|\t|\\r|\r/g, " ");
+const dataStringify = compose(
+  sanatize,
+  stringify
+);
+const addMessage = (arg, { messages = [] } = {}) => (arg || arg === 0 ? messages.concat(dataStringify(arg)) : messages);
 
-/**
- * Parse passed arguments list and return a single JSON object to be be logged.
- * If the arg is an Error object, we need only to extract message, stack and statusCode.
- * message is appended to the log message with a prefix 'Error: '
- * If not an error, extend the original objToLog with all arg properties
- * If an argument is a primitive or an array, append it to the log message after converting to a string.
- * @param {*} args The passed parameters list to be logged
- * @return objToLog: JSON object contains all parameters to be sent to winston context including a message string
- * TODO: make it async?
- */
+const addArg = (data, res = { context: {}, messages: [] }) => (isError(data) && withError(data, res)) || (isObject(data) && withObject(data, res)) || withMessage(data, res);
+const withError = (err, res = { context: {}, messages: [] }) => {
+  if (err) {
+    const { statusCode: status = 500, stack, message } = err;
+    let messages = res.messages || [];
+    if (message) {
+      messages = messages.concat(`Error: ${message}`);
+    }
+    return { ...res, context: Object.assign({}, res.context, status && { status }, stack && { stack }), messages };
+  }
+  return res;
+};
+const withObject = (obj, res = { context: {}, messages: [] }) => (obj ? { ...res, context: Object.assign({}, res.context, obj), messages: res.messages || [] } : res);
+const withMessage = (obj, res = { context: {}, messages: [] }) => Object.assign({}, res, { messages: addMessage(obj, res) });
 
 const parseArgs = args => {
-  let obj = args.reduce(
-    (acc, arg) =>
-      (!arg && acc) ||
-      addError(arg, acc) ||
-      addObject(arg, acc) ||
-      Object.assign({}, acc, { messages: addMessage(arg, acc) }),
-    { messages: [], context: {} }
-  );
-  obj.messages = obj.messages.join(',');
-  return obj;
+  const obj = args.reduce((res, data) => addArg(data, res), { context: {}, messages: [] });
+  return { ...obj, messages: obj.messages.join(",") };
 };
 const logByLevel = level => (...args) => {
-  let obj = parseArgs(args);
-  log[level](obj.messages, obj.context);
+  const { messages, context } = parseArgs(args);
+  return log[level](messages, context);
 };
 
 const logger = Object.keys(log.levels).reduce((acc, val) => {
@@ -60,9 +49,7 @@ const logger = Object.keys(log.levels).reduce((acc, val) => {
 }, {});
 
 logger.setLevel = level => {
-  log.transports.forEach(transport => {
-    transport.level = level;
-  });
+  log.transports = log.transports.map(transport => ({ ...transport, level }));
 };
 
 module.exports = logger;

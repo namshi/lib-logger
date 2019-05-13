@@ -1,10 +1,14 @@
 {
   "name": "lib-logger",
-  "version": "1.0.3",
+  "version": "2.0.0",
   "description": "Library that simplifies the way we log JSON output",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha -t 2000 --recursive"
+    "test": "NODE_ENV=test nyc mocha",
+    "coverage": "nyc --reporter=lcov --reporter=text-lcov mocha",
+    "lint": "eslint --fix .",
+    "ci": "npm run fmt && npm run lint && npm test",
+    "fmt": "./node_modules/prettier/bin-prettier.js *.js './**/*.js' --write"
   },
   "author": "Namshi",
   "keywords": [
@@ -15,9 +19,36 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "keyu": "^1.4.2",
     "winston": "^3.0.0-rc1"
   },
   "devDependencies": {
-    "mocha": "^5.1.1"
+    "chai": "^4.2.0",
+    "eslint": "^5.16.0",
+    "husky": "^2.2.0",
+    "lint-staged": "^8.1.6",
+    "mocha": "^5.2.0",
+    "nyc": "^14.1.0",
+    "prettier": "^1.17.0",
+    "rewire": "^4.0.1",
+    "yaml-lint": "^1.2.4"
+  },
+  "prettier": {
+    "printWidth": 300
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.yml": [
+      "yamllint"
+    ],
+    "*.js": [
+      "prettier --write",
+      "eslint --ignore-pattern test --fix .",
+      "git add"
+    ]
   }
 }
