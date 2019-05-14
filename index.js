@@ -1,7 +1,6 @@
 const util = require("util");
 const { createLogger, format, transports } = require("winston");
 const { combine, timestamp } = format;
-const { compose } = require("keyu");
 
 const log = createLogger({
   level: "info",
@@ -13,10 +12,7 @@ const isError = e => e instanceof Error || (e && e.stack && e.message && true) |
 const isObject = obj => typeof obj === "object" && !Array.isArray(obj) && obj !== null;
 const stringify = data => (isError(data) ? util.inspect(data) : JSON.stringify(data));
 const sanatize = data => data.replace(/\\n|\n|\\t|\t|\\r|\r/g, " ");
-const dataStringify = compose(
-  sanatize,
-  stringify
-);
+const dataStringify = data => sanatize(stringify(data));
 const addMessage = (arg, { messages = [] } = {}) => (arg || arg === 0 ? messages.concat(dataStringify(arg)) : messages);
 
 const addArg = (data, res = { context: {}, messages: [] }) => (isError(data) && withError(data, res)) || (isObject(data) && withObject(data, res)) || withMessage(data, res);
