@@ -16,7 +16,7 @@ describe("Builders", () => {
     it("should return empty string if empty string passed", () => {
       dataStringify("")
         .should.be.a("string")
-        .that.equals('""');
+        .that.equals("");
     });
     it("should stringify a number", () => {
       dataStringify(1)
@@ -42,7 +42,7 @@ describe("Builders", () => {
       addMessage("").should.deep.equals([]);
     });
     it("should return concat an array if messages passed", () => {
-      addMessage("hello", { messages: ['"world"'] }).should.deep.equals(['"world"', '"hello"']);
+      addMessage("hello", { messages: ["world"] }).should.deep.equals(["world", "hello"]);
     });
   });
   describe("#withError", () => {
@@ -94,7 +94,7 @@ describe("Builders", () => {
       addArg(null).should.deep.equals({ context: {}, messages: [] });
     });
     it("should adds any basic type to messages as string", () => {
-      addArg("string").should.deep.equals({ context: {}, messages: ['"string"'] });
+      addArg("string").should.deep.equals({ context: {}, messages: ["string"] });
       addArg(432342).should.deep.equals({ context: {}, messages: ["432342"] });
       addArg(true).should.deep.equals({ context: {}, messages: ["true"] });
     });
@@ -112,10 +112,10 @@ describe("Builders", () => {
   });
   describe("#parseArgs", () => {
     it("should adds regular type to messages", () => {
-      parseArgs(["hola"]).should.deep.equals({ messages: '"hola"', context: {} });
+      parseArgs(["hola"]).should.deep.equals({ messages: "hola", context: {} });
     });
     it("should concat regular types to messages", () => {
-      parseArgs(["hola", 11]).should.deep.equals({ messages: '"hola",11', context: {} });
+      parseArgs(["hola", 11]).should.deep.equals({ messages: "hola,11", context: {} });
     });
     it("should adds object to context", () => {
       parseArgs([{ a: 1 }]).should.deep.equals({ messages: "", context: { a: 1 } });
