@@ -16,7 +16,7 @@ describe("Validators", () => {
   });
   describe("#stringifyOr", () => {
     it("should return false if undefined is passed", () => {
-      dataStringify("Hola\nmundo!").should.equals('"Hola mundo!"');
+      dataStringify("Hola\nmundo!").should.equals("Hola mundo!");
       dataStringify(33).should.equals("33");
     });
   });
