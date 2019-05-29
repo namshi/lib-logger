@@ -36,7 +36,7 @@ const parseArgs = args => {
 };
 const logByLevel = level => (...args) => {
   const { messages, context } = parseArgs(args);
-  return log[level](messages, context);
+  return log[level](messages, { ...context, severity: level.toUpperCase() });
 };
 
 const logger = Object.keys(log.levels).reduce((acc, val) => {
