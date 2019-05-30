@@ -10,7 +10,7 @@ const withObject = index.__get__("withObject");
 const withMessage = index.__get__("withMessage");
 const addArg = index.__get__("addArg");
 const parseArgs = index.__get__("parseArgs");
-
+const addServiceContext = index.__get__("addServiceContext");
 describe("Builders", () => {
   describe("#dataStringify", () => {
     it("should return empty string if empty string passed", () => {
@@ -127,6 +127,17 @@ describe("Builders", () => {
       const msg = parseArgs([new Error("shit")]);
       msg.should.have.nested.include({ "context.status": 500 });
       msg.should.have.nested.include({ messages: "Error: shit" });
+    });
+  });
+  describe("#addServiceContext", () => {
+    it("should return the same object if the environment var is not set", () => {
+      addServiceContext({}, { a: 1 }).should.deep.equals({ a: 1 });
+    });
+    it("should add serviceContext if an app name is passed as enviroment var", () => {
+      addServiceContext({ APP_NAME: "test" }, { a: 1 }).should.deep.equals({ a: 1, serviceContext: { service: "test", version: "1.0.0" } });
+    });
+    it("should return serviceContext with app name and version if those are passed", () => {
+      addServiceContext({ APP_NAME: "test", APP_VERSION: "1.0.1" }, { a: 1 }).should.deep.equals({ a: 1, serviceContext: { service: "test", version: "1.0.1" } });
     });
   });
 });
