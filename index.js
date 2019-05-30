@@ -44,7 +44,7 @@ const parseArgs = args => {
 const logByLevel = level => (...args) => {
   const { messages, context } = parseArgs(args);
   const { env } = process;
-  return log[level](messages, addServiceContext(env, { ...context, severity: level.toUpperCase() }));
+  return log[level](messages, addServiceContext(env, { ...context, severity: level.toUpperCase(), textPayload: messages }));
 };
 
 const logger = Object.keys(log.levels).reduce((acc, val) => {
