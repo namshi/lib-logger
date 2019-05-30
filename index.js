@@ -1,3 +1,4 @@
+/* global process */
 const util = require("util");
 const { createLogger, format, transports } = require("winston");
 const { combine, timestamp } = format;
@@ -15,6 +16,12 @@ const sanatize = data => data.replace(/\\n|\n|\\t|\t|\\r|\r/g, " ");
 const dataStringify = data => sanatize(stringify(data));
 const addMessage = (arg, { messages = [] } = {}) => (arg || arg === 0 ? messages.concat(dataStringify(arg)) : messages);
 
+const addServiceContext = (env, obj) => {
+  if (!env.APP_NAME) {
+    return obj;
+  }
+  return { ...obj, serviceContext: { service: env.APP_NAME, version: env.APP_VERSION || "1.0.0" } };
+};
 const addArg = (data, res = { context: {}, messages: [] }) => (isError(data) && withError(data, res)) || (isObject(data) && withObject(data, res)) || withMessage(data, res);
 const withError = (err, res = { context: {}, messages: [] }) => {
   if (err) {
@@ -36,7 +43,8 @@ const parseArgs = args => {
 };
 const logByLevel = level => (...args) => {
   const { messages, context } = parseArgs(args);
-  return log[level](messages, { ...context, severity: level.toUpperCase() });
+  const { env } = process;
+  return log[level](messages, addServiceContext(env, { ...context, severity: level.toUpperCase() }));
 };
 
 const logger = Object.keys(log.levels).reduce((acc, val) => {
