@@ -17,10 +17,10 @@ const dataStringify = data => sanatize(stringify(data));
 const addMessage = (arg, { messages = [] } = {}) => (arg || arg === 0 ? messages.concat(dataStringify(arg)) : messages);
 
 const addServiceContext = (env, obj) => {
-  if (!env.APP_NAME) {
+  if (!env.APP_NAME && !env.NEW_RELIC_APP_NAME) {
     return obj;
   }
-  return { ...obj, serviceContext: { service: env.APP_NAME, version: env.APP_VERSION || "1.0.0" } };
+  return { ...obj, serviceContext: { service: env.APP_NAME || env.NEW_RELIC_APP_NAME, version: env.APP_VERSION || "1.0.0" } };
 };
 const addArg = (data, res = { context: {}, messages: [] }) => (isError(data) && withError(data, res)) || (isObject(data) && withObject(data, res)) || withMessage(data, res);
 const withError = (err, res = { context: {}, messages: [] }) => {
