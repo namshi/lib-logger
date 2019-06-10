@@ -11,6 +11,7 @@
     "fmt": "./node_modules/prettier/bin-prettier.js *.js './**/*.js' --write"
   },
   "author": "Namshi",
+  "repository": "github:namshi/lib-logger",
   "keywords": [
     "json",
     "logger",
