@@ -1,6 +1,6 @@
 {
   "name": "lib-logger",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Library that simplifies the way we log JSON output",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "winston": "^3.0.0-rc1"
+    "winston": "~3.0.0-rc1"
   },
   "devDependencies": {
     "chai": "^4.2.0",
